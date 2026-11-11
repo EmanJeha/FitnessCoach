@@ -52,9 +52,26 @@
   </div>
 </main>
 
+<script>
+// Runs first, as a plain script, so problems are always shown.
+window.APP_FAIL = (t) => { const s = document.getElementById("status"); s.textContent = "⚠️ " + t; s.style.color = "#E5484D"; s.style.fontWeight = "800"; };
+window.addEventListener("DOMContentLoaded", () => {
+  if (location.protocol === "file:") { APP_FAIL("Do not open this file by double-clicking. Open the GitHub Pages link instead (https://…github.io/…)."); return; }
+  if (!window.isSecureContext) { APP_FAIL("The camera needs an https:// link. Open the GitHub Pages link."); return; }
+  setTimeout(() => { if (!window.APP_READY && !/⚠️/.test(document.getElementById("status").textContent)) APP_FAIL("The app did not start. Make sure ALL files were uploaded: index.html, vision_bundle.mjs, the wasm folder and the models folder."); }, 8000);
+});
+</script>
 <script type="module">
 // ===== PART 1: Load the AI pose model (MediaPipe Pose Landmarker, 33 body points) =====
-import { PoseLandmarker, FilesetResolver, DrawingUtils } from "./vision_bundle.mjs";   // library saved inside this folder
+// Load the AI library saved inside this folder. If it fails, say why instead of doing nothing.
+let PoseLandmarker, FilesetResolver, DrawingUtils;
+try {
+  ({ PoseLandmarker, FilesetResolver, DrawingUtils } = await import("./vision_bundle.mjs"));
+} catch (e) {
+  window.APP_FAIL("The file vision_bundle.mjs did not load. Check it was uploaded next to index.html (not inside another folder).");
+  throw e;
+}
+window.APP_READY = true;
 
 const video = document.getElementById("video");
 const canvas = document.getElementById("canvas");
